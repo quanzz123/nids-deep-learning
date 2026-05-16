@@ -28,10 +28,7 @@ models/*.h5
 models/*.pkl
 models/*.keras
 
-# Reports
-reports/*.png
-reports/*.pdf
-reports/*.html
+
 
 # Internal docs
 rule.md
