@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
 from imblearn.over_sampling import SMOTE
 
 
@@ -33,12 +33,17 @@ def encode_features(train_df, test_df):
     X_train = train_encoded.drop(columns=['attack_cat', 'label'])
     X_test = test_encoded.drop(columns=['attack_cat', 'label'])
 
+    if 'id' in X_train.columns:
+        X_train = X_train.drop(columns=['id'])
+    if 'id' in X_test.columns:
+        X_test = X_test.drop(columns=['id'])
+
     return X_train, X_test, y_train, y_test
 
 
 def scale_features(X_train, X_test):
-    """Normalize numerical features to [0,1] range using MinMaxScaler."""
-    scaler = MinMaxScaler()
+    """Standardize numerical features using StandardScaler (zero mean, unit variance)."""
+    scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
     return X_train_scaled, X_test_scaled, scaler

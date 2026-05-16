@@ -1,6 +1,6 @@
 from sklearn.ensemble import ExtraTreesClassifier
 
-REQUIRED_FEATURES = ['sttl', 'dttl', 'ct_state_ttl', 'dload', 'swin', 'ct_srv_dst', 'id']
+REQUIRED_FEATURES = ['sttl', 'dttl', 'ct_state_ttl', 'dload', 'swin', 'ct_srv_dst']
 
 
 def select_features(X_train, y_train, feature_names):

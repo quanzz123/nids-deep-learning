@@ -98,6 +98,37 @@ def plot_feature_importance(selected_features, importances_dict, save_path=None)
     print(f'Saved: {path}')
 
 
+def save_report_txt(results, selected_features, importances_dict):
+    """Save evaluation metrics, confusion matrix, and selected features to report.txt."""
+    cm = results['confusion_matrix']
+    lines = []
+    lines.append('=' * 50)
+    lines.append('  NIDS EVALUATION REPORT')
+    lines.append('=' * 50)
+    lines.append('')
+    lines.append('--- Metrics ---')
+    for key, val in results.items():
+        if key == 'confusion_matrix':
+            continue
+        key_str = key.replace('_', ' ').title()
+        lines.append(f'  {key_str:<20s}  {val:.4f}')
+    lines.append('')
+    lines.append('--- Confusion Matrix ---')
+    lines.append(f'  TN={cm[0,0]}  FP={cm[0,1]}')
+    lines.append(f'  FN={cm[1,0]}  TP={cm[1,1]}')
+    lines.append('')
+    lines.append('--- Selected Features ---')
+    for feat in selected_features:
+        lines.append(f'  {feat}: {importances_dict[feat]:.6f}')
+    lines.append('')
+    lines.append('=' * 50)
+
+    path = f'{REPORTS_DIR}/report.txt'
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(lines))
+    print(f'Saved: {path}')
+
+
 def print_metrics_table(results):
     """Print evaluation metrics in a formatted table."""
     print()

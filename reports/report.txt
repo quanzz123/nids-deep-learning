@@ -1,0 +1,26 @@
+==================================================
+  NIDS EVALUATION REPORT
+==================================================
+
+--- Metrics ---
+  Accuracy              0.9626
+  Precision             0.9907
+  Recall                0.9598
+  F1 Score              0.9750
+  Auc Roc               0.9955
+
+--- Confusion Matrix ---
+  TN=18934  FP=554
+  FN=2480  TP=59205
+
+--- Selected Features ---
+  sttl: 0.177876
+  dttl: 0.065871
+  ct_state_ttl: 0.054990
+  dload: 0.028332
+  swin: 0.017062
+  ct_srv_dst: 0.037417
+  state_INT: 0.103726
+  state_CON: 0.061963
+
+==================================================
