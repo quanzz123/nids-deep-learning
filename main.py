@@ -25,20 +25,21 @@ def main():
     train_df, test_df = load_and_clean_data(TRAIN_PATH, TEST_PATH)
     X_train, X_test, y_train, y_test = encode_features(train_df, test_df)
     feature_names = list(X_train.columns)
-    # Split original training set into train and val
+
+    # Scale features (fit on full train, transform test)
+    X_train_scaled, X_test_scaled, scaler = scale_features(X_train, X_test)
+
+    # Split BEFORE SMOTE — val set must contain real (not synthetic) samples
+    # to produce reliable validation metrics during training
     X_train_raw, X_val_raw, y_train_raw, y_val_raw = train_test_split(
-        X_train, y_train,
-        test_size=0.2,
+        X_train_scaled, y_train,
+        test_size=0.33,
         random_state=42,
         stratify=y_train
     )
 
-    # Scale features
-    X_train_scaled, X_val_scaled, scaler = scale_features(X_train_raw, X_val_raw)
-    X_test_scaled = scaler.transform(X_test)
-
-    # Apply SMOTE only to training split
-    X_train_balanced, y_train_balanced = apply_smote(X_train_scaled, y_train_raw)
+    # Apply SMOTE ONLY on the training split (67%), never on val/test
+    X_train_balanced, y_train_balanced = apply_smote(X_train_raw, y_train_raw)
 
     # Feature selection (using balanced training data)
     _, selected_features, etc = select_features(
@@ -46,11 +47,12 @@ def main():
     )
 
     # Filter features for all sets
-    test_indices = [feature_names.index(name) for name in selected_features]
-    X_train_final = X_train_balanced[:, test_indices]
-    X_val_final = X_val_scaled[:, test_indices]
-    X_test_final = X_test_scaled[:, test_indices]
+    indices = [feature_names.index(name) for name in selected_features]
+    X_train_final = X_train_balanced[:, indices]
+    X_val_final = X_val_raw[:, indices]
+    X_test_final = X_test_scaled[:, indices]
 
+    # Train — validation_data uses real pre-SMOTE samples
     model = build_model(X_train_final.shape[1])
     history = compile_and_train(model, X_train_final, y_train_balanced, X_val_final, y_val_raw)
     results, y_pred = evaluate(model, X_test_final, y_test)
