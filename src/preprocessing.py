@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
 from imblearn.over_sampling import SMOTE
 
 
@@ -13,6 +14,25 @@ def load_and_clean_data(train_path, test_path):
     train_df = train_df.dropna()
     test_df['service'] = test_df['service'].replace('-', np.nan)
     test_df = test_df.dropna()
+
+    return train_df, test_df
+
+
+def load_and_split_data(data_path, test_size=0.2, random_state=42):
+    """Load a single CSV dataset, clean it, then split into train/test sets."""
+    df = pd.read_csv(data_path)
+
+    df['service'] = df['service'].replace('-', np.nan)
+    df = df.dropna()
+
+    train_df, test_df = train_test_split(
+        df, test_size=test_size, random_state=random_state, stratify=df['label']
+    )
+    train_df = train_df.reset_index(drop=True)
+    test_df = test_df.reset_index(drop=True)
+
+    print(f'Dataset loaded: {len(df)} rows  ->  train={len(train_df)}, test={len(test_df)}')
+    print(f'Label distribution (train): {dict(train_df["label"].value_counts().sort_index())}')
 
     return train_df, test_df
 
@@ -30,20 +50,15 @@ def encode_features(train_df, test_df):
     y_train = train_encoded['label'].values
     y_test = test_encoded['label'].values
 
-    X_train = train_encoded.drop(columns=['attack_cat', 'label'])
-    X_test = test_encoded.drop(columns=['attack_cat', 'label'])
-
-    if 'id' in X_train.columns:
-        X_train = X_train.drop(columns=['id'])
-    if 'id' in X_test.columns:
-        X_test = X_test.drop(columns=['id'])
+    X_train = train_encoded.drop(columns=['attack_cat', 'label', 'id'], errors='ignore')
+    X_test = test_encoded.drop(columns=['attack_cat', 'label', 'id'], errors='ignore')
 
     return X_train, X_test, y_train, y_test
 
 
 def scale_features(X_train, X_test):
-    """Standardize numerical features using StandardScaler (zero mean, unit variance)."""
-    scaler = StandardScaler()
+    """Normalize numerical features using MinMaxScaler (range [0,1])."""
+    scaler = MinMaxScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
     return X_train_scaled, X_test_scaled, scaler

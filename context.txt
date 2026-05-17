@@ -1,0 +1,30 @@
+TOÀN BỘ PIPELINE XỬ LÝ TOÁN CỦA PAPER
+Quy trình xử lý của bài toán phát hiện xâm nhập mạng (NIDS) trong nghiên cứu này bao gồm 6 bước cốt lõi theo sơ đồ kiến trúc hệ thống:  
+Bước 1: 
+Thu Thập Dữ Liệu Gốc (Dataset Acquisition
+)
+ kỹ thuật / Công cụ: Sử dụng toàn bộ tập dữ liệu UNSW-NB15 gồm 175.341 bản ghi. 
+ Đặc trưng: Tập dữ liệu ban đầu có cấu trúc gồm 44 thuộc tính (trong đó có 43 biến đặc trưng đầu vào mang các định dạng số thực, số nguyên, phân loại như proto, service, state và 1 cột nhãn mục tiêu label).  
+ Mục tiêu bài toán: Thiết lập bài toán dưới dạng Phân loại nhị phân (Binary Classification):  Class 0: Lưu lượng mạng bình thường (Normal).  Class 1: Hành vi tấn công mạng (Attack).  
+Bước 2: Làm Sạch và Cải Thiện Chất Lượng Dữ Liệu (Data Cleaning)Kỹ thuật áp dụng: * Xử lý triệt để các giá trị bị khuyết (Handling missing values).  Loại bỏ hoàn toàn các bản ghi trùng lặp (Removing duplicate records) nhằm nâng cao chất lượng dữ liệu thô trước khi tính toán.  Bước 3: Giải Quyết Mất Cân Bằng Lớp (Class Imbalance Handling)Bối cảnh: Tập dữ liệu UNSW-NB15 gốc bị mất cân bằng nghiêm trọng khi tỷ lệ mẫu tấn công chiếm số lượng lớn hơn rất nhiều so với lưu lượng bình thường.  Kỹ thuật áp dụng: Sử dụng thuật toán SMOTE (Synthetic Minority Oversampling Technique).  Cơ chế: Thuật toán này sẽ tự động sinh thêm các mẫu giả lập một cách thực tế cho nhóm lớp thiểu số (ở đây là lớp lưu lượng bình thường) để cân bằng phân phối phân lớp dữ liệu trước khi nạp vào mô hình.  Bước 4: Trích Chọn Đặc Trưng Tối Ưu (Feature Selection)Kỹ thuật áp dụng: Thuật toán học máy nhóm (Ensemble-based) Extra Tree Classifier.  Cơ chế xử lý: 1. Thuật toán đo lường mức độ quan trọng của từng thuộc tính thông qua mức độ giảm độ tinh khiết trung bình (average decrease in impurity) trên các cây quyết định ngẫu nhiên.
+2. Nhóm tác giả thiết lập một ngưỡng giá trị liên quan (Relevancy Threshold) là 0.021.
+3. Loại bỏ hoàn toàn 35 tính năng nhiễu hoặc ít đóng góp. Giữ lại duy nhất 8 đặc trưng cốt lõi có điểm số vượt ngưỡng bao gồm : Sttl (0.1897), Id (0.1784), dttl (0.1018), ct_state_ttl (0.0944), dload (0.0374), State (0.0372), swin (0.0317), và ct_srv_dst (0.0229).  Bước 5: Chuẩn Hóa Dữ Liệu (Data Standardization)Kỹ thuật áp dụng: Phương pháp chuẩn hóa thang đo Z-score (Standard Scaler).  Cơ chế: Áp dụng công thức tính toán toán học:$$z = \frac{x - \mu}{\sigma}$$Đưa toàn bộ 8 đặc trưng đã lọc về cùng một thang đo đồng nhất trong khoảng từ $[0, 1]$. Kỹ thuật này giúp loại bỏ sự chênh lệch lớn về mặt đại lượng số, tối ưu hóa tốc độ tính toán và giúp mạng nơ-ron hội tụ nhanh hơn.  Bước 6: Phân Chia Dữ Liệu & Huấn Luyện Mạng Sequential DNN (Data Splitting & Training)Tỷ lệ phân chia: Dữ liệu sau chuẩn hóa được chia theo tỷ lệ hình học: 70% cho tập huấn luyện (Training Data) và 30% cho tập kiểm thử (Testing Data).  Xây dựng mô hình: Nạp dữ liệu vào mạng nơ-ron nhân tạo dạng chuỗi (Sequential Deep Neural Network) xử lý sâu qua các tầng Fully Connected:  Input Layer: Gồm 8 nơ-ron nhận diện trực tiếp 8 đặc trưng từ bước 4.  Hidden Layers: Gồm các lớp ẩn sử dụng hàm kích hoạt ReLU ($f(x) = \max(0, x)$) để chống triệt tiêu đạo hàm. Tích hợp kỹ thuật L2 Regularization ở lớp đầu và cơ chế Dropout (0.2) ở các lớp ẩn tiếp theo để triệt tiêu hiện tượng quá khớp (overfitting).  Output Layer: Gồm 2 nơ-ron đại diện cho xác suất phân loại nhị phân, sử dụng hàm kích hoạt Softmax.  Cấu hình tối ưu (Compilation): Bộ tối ưu Adam (Learning Rate = 0.001) , hàm mất mát Categorical Crossentropy , chạy trong 100 Epochs với Batch Size = 50.  TÓM TẮT THỨ TỰ PIPELINE TUYẾN TÍNHPlaintext[UNSW-NB15 Dataset (43 Features)] 
+       │
+       ▼
+[Bước 2: Data Cleaning] ───► Xử lý giá trị thiếu & loại bỏ trùng lặp
+       │
+       ▼
+[Bước 3: SMOTE] ───────────► Cân bằng lại tỷ lệ mẫu Normal và Attack
+       │
+       ▼
+[Bước 4: Extra Tree] ──────► Lọc đặc trưng theo ngưỡng 0.021 (Giảm còn 8 Features)
+       │
+       ▼
+[Bước 5: Standard Scaler] ─► Chuẩn hóa Z-score đưa dữ liệu về thang [0, 1]
+       │
+       ▼
+[Bước 6: Data Split] ──────► Chia tách tập dữ liệu theo tỷ lệ 70% Train : 30% Test
+       │
+       ▼
+[Bước 7: Train DNN] ───────► Huấn luyện mạng Sequential DNN (ReLU, L2, Dropout, Softmax)
+Pipeline tinh gọn mang tính chiến thuật này giúp hệ thống đạt độ chính xác cực cao (97.93% Accuracy) nhưng đồng thời giảm thiểu tối đa tài nguyên tính toán (độ trễ trích xuất đặc trưng thấp), đáp ứng hoàn hảo điều kiện triển khai thời gian thực (real-time) để bảo vệ hạ tầng mạng an ninh.  

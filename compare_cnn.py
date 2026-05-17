@@ -1,5 +1,6 @@
 import os
 import numpy as np
+from sklearn.model_selection import train_test_split
 
 from src.preprocessing import load_and_clean_data, encode_features, scale_features, apply_smote
 from src.model import build_cnn_model
@@ -30,29 +31,20 @@ def main():
     # 2. Scale features (fit on full train, transform test)
     X_train_scaled, X_test_scaled, scaler = scale_features(X_train, X_test)
 
-    # 3. Split BEFORE SMOTE — val must be real data, not synthetic
-    X_train_raw, X_val_raw, y_train_raw, y_val_raw = train_test_split(
-        X_train_scaled, y_train,
-        test_size=0.33,
-        random_state=42,
-        stratify=y_train
-    )
-
-    # 4. Apply SMOTE ONLY on the 67% training split
-    X_train_balanced, y_train_balanced = apply_smote(X_train_raw, y_train_raw)
+    # 4. Apply SMOTE on the full training set
+    X_train_balanced, y_train_balanced = apply_smote(X_train_scaled, y_train)
 
     # 5. Reshape for 1D-CNN: (samples, features, 1)
     X_train_cnn = np.expand_dims(X_train_balanced, axis=-1)
-    X_val_cnn = np.expand_dims(X_val_raw, axis=-1)
     X_test_cnn = np.expand_dims(X_test_scaled, axis=-1)
 
     # 6. Build model
     input_dim = X_train_cnn.shape[1]
     model = build_cnn_model(input_dim)
 
-    # 7. Train — validation_data uses real pre-SMOTE samples
+    # 7. Train — validation_split=0.33 is handled inside compile_and_train
     print(f"Training 1D-CNN with {input_dim} features...")
-    history = compile_and_train(model, X_train_cnn, y_train_balanced, X_val_cnn, y_val_raw)
+    history = compile_and_train(model, X_train_cnn, y_train_balanced)
 
 
     # 7. Evaluate on test set

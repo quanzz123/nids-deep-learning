@@ -7,16 +7,32 @@ from tensorflow.keras.regularizers import l2
 
 
 def build_model(input_dim=8):
-    """Build a Sequential DNN: 400-800-800-400, ReLU, Dropout 0.2, L2 on first layer, Softmax output."""
-    model = Sequential([
-        Dense(400, activation='relu', kernel_regularizer=l2(1e-4), input_shape=(input_dim,)),
-        Dense(800, activation='relu'),
-        Dropout(0.2), 
-        Dense(800, activation='relu'),
-        Dropout(0.2),
-        Dense(400, activation='relu'),
-        Dense(2, activation='softmax')
-    ])
+    """Build a Sequential DNN matching the pseudo-code in rule.md (Section 10) syntax:
+    - model.add(Dense(400, L2))
+    - model.add(Dense(800))
+    - model.add(Dropout(0.2))
+    - model.add(Dense(800))
+    - model.add(Dropout(0.2))
+    - model.add(Dense(400))
+    - model.add(Dense(2, softmax))
+    """
+    model = Sequential()
+    
+    # 1. Add input and hidden layers
+    # ONLY the first layer has L2 regularization as per pseudo-code
+    model.add(Dense(units=400, input_dim=input_dim, activation='relu', kernel_regularizer=l2(1e-4)))
+    
+    model.add(Dense(units=800, activation='relu'))
+    model.add(Dropout(0.2))
+    
+    model.add(Dense(units=800, activation='relu'))
+    model.add(Dropout(0.2))
+    
+    model.add(Dense(units=400, activation='relu'))
+    
+    # 2. Add output layer
+    model.add(Dense(units=2, activation='softmax'))
+    
     return model
 
 

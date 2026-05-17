@@ -1,3 +1,4 @@
+import io
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
@@ -98,8 +99,8 @@ def plot_feature_importance(selected_features, importances_dict, save_path=None)
     print(f'Saved: {path}')
 
 
-def save_report_txt(results, selected_features, importances_dict):
-    """Save evaluation metrics, confusion matrix, and selected features to report.txt."""
+def save_report_txt(results, selected_features, importances_dict, model=None):
+    """Save evaluation metrics, confusion matrix, selected features, and model summary to report.txt."""
     cm = results['confusion_matrix']
     lines = []
     lines.append('=' * 50)
@@ -122,6 +123,15 @@ def save_report_txt(results, selected_features, importances_dict):
         lines.append(f'  {feat}: {importances_dict[feat]:.6f}')
     lines.append('')
     lines.append('=' * 50)
+
+    # Model summary (optional)
+    if model is not None:
+        buf = io.StringIO()
+        model.summary(print_fn=lambda x: buf.write(x + '\n'))
+        lines.append('')
+        lines.append('--- Model Summary ---')
+        lines.append(buf.getvalue())
+        lines.append('=' * 50)
 
     path = f'{REPORTS_DIR}/report.txt'
     with open(path, 'w', encoding='utf-8') as f:
